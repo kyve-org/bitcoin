@@ -1,4 +1,4 @@
-import KYVE from "@kyve/core";
+import KYVE, { Item } from "@kyve/core";
 import { Signature } from "./types";
 import { fetchBlock, fetchBlockHash } from "./utils";
 import { version } from "../package.json";
@@ -11,14 +11,14 @@ KYVE.metrics.register.setDefaultLabels({
 });
 
 class KyveBitcoin extends KYVE {
-  public async getDataItem(key: number): Promise<{ key: number; value: any }> {
+  public async getDataItem(key: string): Promise<Item> {
     let hash: string;
     let block: any;
 
     try {
       hash = await fetchBlockHash(
         this.pool.config.rpc,
-        key,
+        +key,
         await this.getSignature()
       );
     } catch (err) {
@@ -34,14 +34,24 @@ class KyveBitcoin extends KYVE {
         await this.getSignature()
       );
     } catch (err) {
-      this.logger.warn(
-        `⚠️  EXTERNAL ERROR: Failed to fetch block ${key}. Retrying ...`
-      );
+      this.logger.warn(`Failed to fetch block ${key}. Retrying ...`);
 
       throw err;
     }
 
     return { key, value: block };
+  }
+
+  public async getNextKey(key: string): Promise<string> {
+    if (key) {
+      return (parseInt(key) + 1).toString();
+    }
+
+    return "0";
+  }
+
+  public async formatValue(value: any): Promise<string> {
+    return value.hash;
   }
 
   private async getSignature(): Promise<Signature> {
