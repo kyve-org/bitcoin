@@ -1,13 +1,13 @@
 import axios from "axios";
 import { nanoid } from "nanoid";
-import { Response, Signature } from "./types";
+import { Response } from "./types";
 
 export async function fetchBlock(
   endpoint: string,
   hash: string,
-  signature: Signature
+  headers: any
 ): Promise<any> {
-  const block = await call<any>(endpoint, "getblock", [hash, 2], signature);
+  const block = await call<any>(endpoint, "getblock", [hash, 2], headers);
 
   // Remove confirmations to maintain determinism.
   delete block.confirmations;
@@ -18,16 +18,16 @@ export async function fetchBlock(
 export async function fetchBlockHash(
   endpoint: string,
   height: number,
-  signature: Signature
+  headers: any
 ): Promise<string> {
-  return await call<string>(endpoint, "getblockhash", [height], signature);
+  return await call<string>(endpoint, "getblockhash", [height], headers);
 }
 
 async function call<T>(
   endpoint: string,
   method: string,
   params: any[],
-  signature: Signature
+  headers: any
 ): Promise<T> {
   const { data } = await axios.get<Response<T>>(endpoint, {
     data: JSON.stringify({
@@ -36,13 +36,7 @@ async function call<T>(
       method,
       params,
     }),
-    headers: {
-      Signature: signature.signature,
-      "Public-Key": signature.pubKey,
-      "Pool-ID": signature.poolId,
-      Timestamp: signature.timestamp,
-      "Content-Type": "application/json",
-    },
+    headers,
   });
 
   return data.result;
