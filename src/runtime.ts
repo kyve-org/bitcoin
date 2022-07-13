@@ -13,15 +13,25 @@ export default class Bitcoin implements IRuntime {
     const headers = await this.generateCoinbaseCloudHeaders(core);
 
     try {
-      hash = await fetchBlockHash(core.poolConfig.rpc, +key, headers);
+      hash = await fetchBlockHash(
+        "https://proxy.alpha.kyve.network/bitcoin",
+        +key,
+        headers
+      );
     } catch (err) {
+      console.log(err);
       // The only time this should fail is if the height is out of range.
       throw err;
     }
 
     try {
-      block = await fetchBlock(core.poolConfig.rpc, hash, headers);
+      block = await fetchBlock(
+        "https://proxy.alpha.kyve.network/bitcoin",
+        hash,
+        headers
+      );
     } catch (err) {
+      console.log(err);
       throw err;
     }
 
@@ -49,7 +59,7 @@ export default class Bitcoin implements IRuntime {
     return {
       "Content-Type": "application/json",
       Signature: signature,
-      "Public-Key": pub_key,
+      "Public-Key": pub_key.value,
       "Pool-ID": poolId,
       Timestamp: timestamp,
     };
